@@ -3,9 +3,9 @@ import re
 import json
 
 from flathunter.logging import logger
-from flathunter.webdriver_crawler import WebdriverCrawler
+from flathunter.abstract_crawler import Crawler
 
-class MeineStadt(WebdriverCrawler):
+class MeineStadt(Crawler):
     """Implementation of Crawler interface for MeineStadt"""
 
     URL_PATTERN = re.compile(r'https://www\.meinestadt\.de')

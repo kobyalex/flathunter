@@ -9,12 +9,15 @@ import undetected_chromedriver as uc
 
 from flathunter.logging import logger
 from flathunter.exceptions import ChromeNotFound
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+
 
 CHROME_VERSION_REGEXP = re.compile(r'.* (\d+\.\d+\.\d+\.\d+)( .*)?')
 WINDOWS_CHROME_REG_PATH = r'HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon'
 WINDOWS_CHROME_REG_REGEXP = re.compile(r'\s*version\s*REG_SZ\s*(\d+)\..*')
 CHROME_BINARY_NAMES = ['google-chrome', 'chromium', 'chrome', 'chromium-browser',
-                       '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome']
+                       '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', "chromedriver"]
 
 def get_command_output(args) -> List[str]:
     """Run a command and return stdout"""
@@ -28,7 +31,7 @@ def get_command_output(args) -> List[str]:
     except FileNotFoundError:
         return []
 
-def get_chrome_version() -> int:
+def get_chrome_version() -> tuple:
     """Determine the correct name for the chrome binary"""
     for binary_name in CHROME_BINARY_NAMES:
         try:
@@ -38,7 +41,7 @@ def get_chrome_version() -> int:
             match = CHROME_VERSION_REGEXP.match(version_output[0])
             if match is None:
                 continue
-            return int(match.group(1).split('.')[0])
+            return int(match.group(1).split('.')[0]), binary_name
         except FileNotFoundError:
             pass
     try:
@@ -55,18 +58,26 @@ def get_chrome_version() -> int:
         pass
     raise ChromeNotFound()
 
+def get_chromedriver_path(binary_name: str) -> str:
+    """Determine the correct path for the chrome driver binary"""
+    chromedriver_path = get_command_output(['which', binary_name])[0]
+    if chromedriver_path is None:
+        raise ChromeNotFound()
+    return chromedriver_path.strip(" \n")
+
 def get_chrome_driver(driver_arguments):
     """Configure Chrome WebDriver"""
     logger.info('Initializing Chrome WebDriver for crawler...')
-    chrome_options = uc.ChromeOptions() # pylint: disable=no-member
+    chrome_options = webdriver.ChromeOptions() # pylint: disable=no-member
     if platform == "darwin":
         chrome_options.add_argument("--headless")
     if driver_arguments is not None:
         for driver_argument in driver_arguments:
             chrome_options.add_argument(driver_argument)
-    chrome_version = get_chrome_version()
-    chrome_options.add_argument("--headless=new")
-    driver = uc.Chrome(version_main=chrome_version, options=chrome_options) # pylint: disable=no-member
+    chrome_version, chrome_binary = get_chrome_version()
+    chromedriver_path = get_chromedriver_path(chrome_binary)
+    # driver = webdriver.Chrome(executable_path=chromedriver_path, options=chrome_options) # pylint: disable=no-member
+    driver = webdriver.Chrome(service=Service(executable_path=chromedriver_path), options=chrome_options) # pylint: disable=no-member
 
     driver.execute_cdp_cmd(
         "Network.setUserAgentOverride",

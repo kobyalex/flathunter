@@ -57,7 +57,7 @@ class ChromeWrapperTest(unittest.TestCase):
         subprocess_mock.side_effect = my_subprocess_mock
         with pytest.raises(ChromeNotFound):
             self.assertEqual(get_chrome_version(), None)
-        self.assertEqual(get_chrome_version(), 107)
-        self.assertEqual(get_chrome_version(), 107)
-        self.assertEqual(get_chrome_version(), 107)
+        self.assertEqual(get_chrome_version(), (107, 'google-chrome'))
+        self.assertEqual(get_chrome_version(), (107, 'google-chrome'))
+        self.assertEqual(get_chrome_version(), (107, 'google-chrome'))
         self.assertEqual(get_chrome_version(), 116)

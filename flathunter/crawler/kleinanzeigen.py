@@ -4,14 +4,11 @@ import datetime
 from typing import Optional
 
 from bs4 import Tag
-from selenium.webdriver import Chrome
-
-from flathunter.webdriver_crawler import WebdriverCrawler
-from flathunter.chrome_wrapper import get_chrome_driver
-from flathunter.exceptions import DriverLoadException
 from flathunter.logging import logger
+from flathunter.abstract_crawler import Crawler
 
-class Kleinanzeigen(WebdriverCrawler):
+
+class Kleinanzeigen(Crawler):
     """Implementation of Crawler interface for Ebay Kleinanzeigen"""
 
     URL_PATTERN = re.compile(r'https://www\.kleinanzeigen\.de')
@@ -31,7 +28,7 @@ class Kleinanzeigen(WebdriverCrawler):
     }
 
     def get_expose_details(self, expose):
-        soup = self.get_page(expose['url'], self.get_driver())
+        soup = self.get_page(expose['url'])
         for detail in soup.find_all('li', {"class": "addetailslist--detail"}):
             if re.match(r'Verfügbar ab', detail.text):
                 date_string = re.match(r'(\w+) (\d{4})', detail.text)
