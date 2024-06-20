@@ -66,14 +66,14 @@ class Crawler(ABC):
 
         if self.config.use_proxy():
             return self.get_soup_with_proxy(url)
-        if driver is not None:
-            driver.get(url)
-            if re.search("initGeetest", driver.page_source):
-                self.resolve_geetest(driver)
-            elif re.search("g-recaptcha", driver.page_source):
-                self.resolve_recaptcha(
-                    driver, checkbox, afterlogin_string or "")
-            return BeautifulSoup(driver.page_source, 'html.parser')
+        # if driver is not None:
+        #     driver.get(url)
+        #     if re.search("initGeetest", driver.page_source):
+        #         self.resolve_geetest(driver)
+            # elif re.search("g-recaptcha", driver.page_source):
+            #     self.resolve_recaptcha(
+            #         driver, checkbox, afterlogin_string or "")
+            # return BeautifulSoup(driver.page_source, 'html.parser')
 
         resp = requests.get(url, headers=self.HEADERS, timeout=30)
         if resp.status_code not in (200, 405):
