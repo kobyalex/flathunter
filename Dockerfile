@@ -1,27 +1,42 @@
-FROM python:3.11
+FROM arm32v7/python:3.11-slim-bullseye
 
+# Setting environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-ARG PIP_NO_CACHE_DIR=1
 
-# Install Google Chrome
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
-RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
-RUN apt-get -y update
-RUN apt-get install -y google-chrome-stable
+# Use a single RUN command for apt-get to reduce the number of layers
+RUN apt-get update && apt-get install -y \
+    chromium \
+    git \
+    build-essential \
+    pkg-config \
+    zlib1g-dev \
+    curl \
+    libssl-dev \
+    libffi-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip, install pipenv
-RUN pip install --upgrade pip
-RUN pip install pipenv
+# Install Rust using the official installer script
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
+# Add Rust to PATH (this might vary depending on the base image)
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Confirm installation by printing Rust version
+RUN rustc --version
+
+# Upgrade pip and install pipenv in one RUN command
+RUN pip install --upgrade pip && pip install pipenv
+
+# Set the working directory
 WORKDIR /usr/src/app
 
-# Copy files that list dependencies
-COPY Pipfile.lock Pipfile ./
-
+COPY requirements.txt requirements.txt
 # Generate requirements.txt and install dependencies from there
-RUN pipenv requirements > requirements.txt
 RUN pip install -r requirements.txt
 
-# Copy all other files, including source files
+# Copy the rest of the application code
 COPY . .

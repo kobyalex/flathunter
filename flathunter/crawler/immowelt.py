@@ -94,19 +94,19 @@ class Immowelt(Crawler):
                     image = src.get("data-srcset")
 
             try:
-                address = expose_ids[idx].find(
-                    "div", attrs={"class": re.compile("IconFact.*")}
-                  )
-                address = address.find("span").text
-            # address_div = expose_ids[idx].find("div", {"class": "row map-card__details"})
-            # if not address_div:
-            #     address_div = expose_ids[idx].find("div", {"class": "mb-50 ng-star-inserted"})
-            #     address_street = address_div.find("span", {"data_cy": "address-street"})
-            #     address_city = address_div.find("span", {"data_cy": "address-city"})
-            # else:
-            #     address_street = address_div.find("p").text
-            #     address_city = address_div.find("p").text
-            # address = f"{address_street} {address_city}"
+                # address = expose_ids[idx].find(
+                #     "div", attrs={"class": re.compile("IconFact.*")}
+                #   )
+                # address = address.find("span").text
+                address_div = expose_ids[idx].find("div", {"class": "row map-card__details"})
+                if not address_div:
+                    address_div = expose_ids[idx].find("div", {"class": "mb-50 ng-star-inserted"})
+                    address_street = address_div.find("span", {"data_cy": "address-street"})
+                    address_city = address_div.find("span", {"data_cy": "address-city"})
+                else:
+                    address_street = address_div.find("p").text
+                    address_city = address_div.find("p").text
+                address = f"{address_street} {address_city}"
             except (IndexError, AttributeError):
                 logger.debug("No address in response for URL: %s", expose_ids[idx])
                 address = ""
